@@ -37,11 +37,11 @@ async function validateRegistraionData(req) {
     // data patterns validation 
     const schema = Joi.object({
         username: Joi.string().pattern(new RegExp('^[A-Za-z][A-Za-z0-9_]{7,29}$')).required(),
-        email: Joi.string().pattern(new RegExp('^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$')).min(3).required(),
+        email: Joi.string().pattern(new RegExp('^[a-zA-Z0-9+_.-]+@[a-zA-Z]+\\.[a-zA-Z]{3,20}$')).min(3).required(),
         first_name: Joi.string().pattern(new RegExp('^[A-Za-z]{3,30}$')).required(),
         last_name: Joi.string().pattern(new RegExp('^[A-Za-z]{3,30}$')).required(),
-        telephone_no: Joi.string().pattern(new RegExp('^\\+(?:[0-9]●?){6,14}[0-9]$')).required(),
-        password: Joi.string().pattern(new RegExp('^([A-Za-z\\d]){8,30}$')).required()
+        telephone_no: Joi.string().pattern(new RegExp('^\\+(?:[0-9]●?){6,14}[0-9]$')).max(16).required(),
+        password: Joi.string().pattern(new RegExp('^([A-Za-z\\d._]){8,30}$')).required()
     })
     const validateSchema = schema.validate({
         username: req.username,
