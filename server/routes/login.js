@@ -11,12 +11,24 @@ router.get('/', (req, res) => {
         field = "email"
     }
     
-    pool.query(`SELECT u.id FROM public.users u
+    pool.query(`SELECT u.id ,u.password FROM public.users u
 	            WHERE u.${field} = '${username}'`, (err, result) => {
         if (err) {
             return res.send({error : err})
         }
-        return res.send(result.rows)
+        if (!result.rowCount) {
+            if (field == "email") {
+                return res.send({error: 'The email address you entered isn\'t connected to an account.'})
+            } else {
+                return res.send({ error: 'The username you entered isn\'t connected to an account.' })
+            }
+        }
+
+        // now validate the password
+        if (result.rows[0].password != password) {
+            return res.send({error: 'The password that you\'ve entered is incorrect.'})
+        }
+        return res.send(result.rows[0].id)
     })
 })
 
