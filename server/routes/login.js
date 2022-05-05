@@ -10,11 +10,11 @@ router.get('/', (req, res) => {
     if (username.includes("@")) {
         field = "email"
     }
-    console.log(`${field} :  ${username}`)
+    
     pool.query(`SELECT u.id FROM public.users u
 	            WHERE u.${field} = '${username}'`, (err, result) => {
         if (err) {
-            return res.send(err)
+            return res.send({error : err})
         }
         return res.send(result.rows)
     })
