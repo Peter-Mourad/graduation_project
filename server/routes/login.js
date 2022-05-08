@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const pool = require('../connection')
-const bodyParser = require('body-parser')
+const jwt = require('../middlewares/JWT')
+
 router.use(express.json())
 
 router.get('/', (req, res) => {
@@ -14,21 +15,22 @@ router.get('/', (req, res) => {
     pool.query(`SELECT u.id ,u.password FROM public.users u
 	            WHERE u.${field} = '${username}'`, (err, result) => {
         if (err) {
-            return res.send({error : err})
+            return res.status(404).send({error : err})
         }
         if (!result.rowCount) {
             if (field == "email") {
-                return res.send({error: 'The email address you entered isn\'t connected to an account.'})
+                return res.status(400).send({error: 'The email address you entered isn\'t connected to an account.'})
             } else {
-                return res.send({ error: 'The username you entered isn\'t connected to an account.' })
+                return res.status(400).send({ error: 'The username you entered isn\'t connected to an account.' })
             }
         }
 
         // now validate the password
         if (result.rows[0].password != password) {
-            return res.send({error: 'The password that you\'ve entered is incorrect.'})
+            return res.status(400).send({error: 'The password that you\'ve entered is incorrect.'})
         }
-        return res.send(result.rows[0].id)
+        const token = jwt.GenerateToken(result.rows[0])
+        return res.send({ token: token })
     })
 })
 
