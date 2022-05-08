@@ -1,16 +1,16 @@
 const express = require('express')
 const router = express.Router()
 const pool = require('../connection')
-const bodyParser = require('body-parser')
 const Joi = require('joi')
 
 router.use(express.json())
 
+
 router.post('/', async (req, res) => {
-    var username = req.body.username, password = req.body.password, email = req.body.email,
-        first_name = req.body.first_name, last_name = req.body.last_name, telephone_no = req.body.telephone_no
+    var username = req.body.username, password = req.body.password, confirm_password = req.body.confirm_password,
+        email = req.body.email, first_name = req.body.first_name, last_name = req.body.last_name, telephone_no = req.body.telephone_no
     
-    // todo : validate registeration data
+    // validate registeration data
     var validation = await validateRegistraionData(req.body)
     
     if (validation.hasError) {
@@ -53,6 +53,11 @@ async function validateRegistraionData(req) {
     })
     if (validateSchema.error) {
         res.hasError = true, res.error = validateSchema.error
+        return res
+    }
+
+    if (req.confirm_password != req.password) {
+        res.hasError = true, res.error = 'passwords don\'t match'
         return res
     }
 
