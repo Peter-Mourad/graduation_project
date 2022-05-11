@@ -8,6 +8,7 @@ const speechConfig = sdk.SpeechConfig.fromSubscription(
 speechConfig.speechRecognitionLanguage = "en-US";
 
 function fromFile(filePath) {
+  console.log("here", filePath);
   let audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(filePath));
   let speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
@@ -15,10 +16,11 @@ function fromFile(filePath) {
     switch (result.reason) {
       case sdk.ResultReason.RecognizedSpeech:
         console.log(`RECOGNIZED: Text=${result.text}`);
-        break;
+        return { isSuccessful: true, text: result.text };
+
       case sdk.ResultReason.NoMatch:
         console.log("NOMATCH: Speech could not be recognized.");
-        break;
+        return { isSuccessful: false, text: null };
       case sdk.ResultReason.Canceled:
         const cancellation = sdk.CancellationDetails.fromResult(result);
         console.log(`CANCELED: Reason=${cancellation.reason}`);
@@ -30,7 +32,7 @@ function fromFile(filePath) {
             "CANCELED: Did you set the speech resource key and region values?"
           );
         }
-        break;
+        return { isSuccessful: false, text: null };
     }
     speechRecognizer.close();
   });
