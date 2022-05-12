@@ -29,8 +29,8 @@ router.get('/', (req, res) => {
         if (result.rows[0].password != password) {
             return res.status(400).send({error: 'The password that you\'ve entered is incorrect.'})
         }
-        const token = jwt.GenerateToken(result.rows[0])
-        return res.send({ token: token })
+        const { access_token, refresh_token} = jwt.GenerateToken(result.rows[0])
+        return res.send({ access_token: access_token, refresh_token: refresh_token })
     })
 })
 
