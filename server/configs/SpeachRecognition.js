@@ -12,7 +12,9 @@ function fromFile(filePath) {
   let audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(filePath));
   let speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
+  console.log("here!");
   speechRecognizer.recognizeOnceAsync((result) => {
+    console.log("here!");
     switch (result.reason) {
       case sdk.ResultReason.RecognizedSpeech:
         console.log(`RECOGNIZED: Text=${result.text}`);
