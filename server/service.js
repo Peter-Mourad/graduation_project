@@ -8,7 +8,7 @@ const register = require('./routes/register')
 const login = require('./routes/login')
 const refresh_token = require('./routes/regenerate_token')
 const reset_password = require('./routes/reset_passwrod')
-// const paulo_testing = require('./routes/pauloTesting')
+const paulo_testing = require('./routes/pauloTesting')
 
 require('dotenv').config()
 
@@ -18,7 +18,7 @@ app.use('/register', register)
 app.use('/login', login)
 app.use('/refresh', refresh_token)
 app.use('/reset_password', reset_password)
-// app.use('/paulo_testing', paulo_testing)
+app.use('/paulo_testing', paulo_testing)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
