@@ -28,7 +28,10 @@ router.post('/', (req, res) => {
         }
 
         const { access_token, refresh_token } = jwt.GenerateToken(result.rows[0]);
-        return res.send({ access_token: access_token, refresh_token: refresh_token });
+        return res.send({
+            access_token: access_token,
+            refresh_token: refresh_token
+        });
     })
 })
 
