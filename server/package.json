@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "bcrypt": "^5.0.1",
     "config": "^3.3.7",
     "cookie-session": "^2.0.0",
     "dotenv": "^16.0.0",
@@ -18,9 +19,9 @@
     "fluent-ffmpeg": "^2.1.2",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
-    "nodemailer": "^6.7.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.21.0",
     "multer": "^1.4.4",
+    "nodemailer": "^6.7.5",
     "nodemon": "^2.0.15",
     "passport": "^0.5.2",
     "passport-google-oauth2": "^0.2.0",

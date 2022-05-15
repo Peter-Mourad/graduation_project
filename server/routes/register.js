@@ -1,29 +1,32 @@
 const express = require('express')
+const bcrypt = require('bcrypt')
 const router = express.Router()
 const pool = require('../connection')
 const Joi = require('joi')
 
 router.use(express.json())
 
-
 router.post('/', async (req, res) => {
-    var username = req.body.username, password = req.body.password, confirm_password = req.body.confirm_password,
-        email = req.body.email, first_name = req.body.first_name, last_name = req.body.last_name, telephone_no = req.body.telephone_no
+    var username = req.body.username, password = req.body.password, email = req.body.email,
+        first_name = req.body.first_name, last_name = req.body.last_name, gender = req.body.gender;
     
     // validate registeration data
-    var validation = await validateRegistraionData(req.body)
+    var validation = await validateRegistraionData(req.body);
     
     if (validation.hasError) {
-        return res.status(400).send({error : validation.error})
+        return res.
+            status(400).
+            send({ error: validation.error });
     }
     else {
-        pool.query(`INSERT INTO public.users (username, "password", first_name, last_name, email, telephone_no)
-	                VALUES ('${username}', '${password}', '${first_name}', '${last_name}', '${email}', '${telephone_no}')`,
+        password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+        pool.query(`INSERT INTO public.users (username, "password", first_name, last_name, email, gender)
+	                VALUES ('${username}', '${password}', '${first_name}', '${last_name}', '${email}', '${gender}')`,
             (err, result) => {
                 if (err) {
-                    return res.send({ error: err.message })
+                    return res.send({ error: err.message });
                 }
-                return res.send(result.rows)
+                return res.send(result.rows);
             })
     }
 })
@@ -32,7 +35,7 @@ async function validateRegistraionData(req) {
     var res = {
         hasError: false,
         error: ""
-    }
+    };
 
     // data patterns validation 
     const schema = Joi.object({
@@ -40,25 +43,40 @@ async function validateRegistraionData(req) {
         email: Joi.string().pattern(new RegExp('^[a-zA-Z0-9+_.-]+@[a-zA-Z]+\\.[a-zA-Z]{3,20}$')).min(3).required(),
         first_name: Joi.string().pattern(new RegExp('^[A-Za-z]{3,30}$')).required(),
         last_name: Joi.string().pattern(new RegExp('^[A-Za-z]{3,30}$')).required(),
-        telephone_no: Joi.string().pattern(new RegExp('^\\+(?:[0-9]●?){6,14}[0-9]$')).max(16).required(),
-        password: Joi.string().pattern(new RegExp('^([A-Za-z\\d._]){8,30}$')).required()
-    })
+        password: Joi.string().pattern(new RegExp('^([A-Za-z\\d._]){8,30}$')).required(),
+        gender: Joi.string().pattern(new RegExp('^(female|male)$')).min(4).max(6).required()
+    });
     const validateSchema = schema.validate({
         username: req.username,
         email: req.email,
         first_name: req.first_name,
         last_name: req.last_name,
-        telephone_no: req.telephone_no,
-        password: req.password
-    })
-    if (validateSchema.error) {
-        res.hasError = true, res.error = validateSchema.error
-        return res
-    }
+        password: req.password,
+        gender: req.gender
+    });
 
-    if (req.confirm_password != req.password) {
-        res.hasError = true, res.error = 'passwords don\'t match'
-        return res
+    if (validateSchema.error) {
+        const err = validateSchema.error.message;
+        res.hasError = true;
+        if (err.includes('username')) {
+            res.error = 'The username isn\'t valid';
+        }
+        else if (err.includes('email')) {
+            res.error = 'The email isn\'t valid';
+        }
+        else if (err.includes('first_name')) {
+            res.error = 'The first name isn\'t valid';
+        }
+        else if (err.includes('last_name')) {
+            res.error = 'The last name isn\'t valid';
+        }
+        else if(err.includes('gender')){
+            res.error = 'The gender isn\'t valid';
+        }
+        else {
+            res.error = 'The password isn\'t valid';
+        }
+        return res;
     }
 
     // validate username uniqueness
@@ -66,8 +84,8 @@ async function validateRegistraionData(req) {
                                     where u.username = '${req.username}'
                                     limit 1`);
     if (results.rowCount) {
-        res.hasError = true, res.error = 'This username arleady exists!'
-        return res
+        res.hasError = true, res.error = 'This username arleady exists!';
+        return res;
     }
 
     // validate email uniqueness
@@ -75,11 +93,11 @@ async function validateRegistraionData(req) {
                                     where u.email = '${req.email}'
                                     limit 1`);
     if (results.rowCount) {
-        res.hasError = true, res.error = 'This email arleady exists!'
-        return res
+        res.hasError = true, res.error = 'This email arleady exists!';
+        return res;
     }
 
-    return res
+    return res;
 }
 
-module.exports = router
+module.exports = router;

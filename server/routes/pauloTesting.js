@@ -5,7 +5,6 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 const multer = require("multer");
 const path = require("path");
 const fromFile = require("../configs/SpeachRecognition");
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads");
@@ -56,13 +55,12 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
       ".wav",
     function (errorMessage) {},
     null,
-    function () {
-      fromFile(
+    async function () {
+      const obj = fromFile(
         "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
           req.file.filename +
           ".wav"
-      );
-      // make it syncabla
+      ); // make it syncabla
       // delete the records after use
     }
   );
