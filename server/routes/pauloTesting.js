@@ -68,4 +68,12 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
   res.json({ text: "this is your voice record you stupid shit bastered!" });
 });
 
+Router.post("/suggestion", (req, res) => {
+  console.log(req.body);
+  const text = req.body.text || null;
+
+  console.log("here!", text);
+  res.json({ suggestion: "this is the suggestion" });
+});
+
 module.exports = Router;
