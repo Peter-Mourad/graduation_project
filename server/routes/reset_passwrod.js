@@ -6,7 +6,7 @@ const { string } = require('joi')
 const router = express.Router()
 require('dotenv').config()
 
-router.use(express.json())
+router.use(express.json());
 
 router.post('/', async (req, res) => {
     let transporter = nodemailer.createTransport({
@@ -78,4 +78,4 @@ router.post('/verify-code', async (req, res) => {
     });  
 });
 
-module.exports = router
+module.exports = router;
