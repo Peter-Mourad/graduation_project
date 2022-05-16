@@ -6,6 +6,7 @@ require("dotenv").config();
 router.use(express.json());
 
 router.post("/", async (req, res) => {
+  console.log(req.body.email);
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -32,7 +33,6 @@ router.post("/", async (req, res) => {
 });
 var code = "";
 const mail = `
-< !doctype html>
     <html lang="en-US">
         <head>
             <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
