@@ -1,114 +1,81 @@
 const nodemailer = require('nodemailer')
 const express = require('express')
+const pool = require('../connection')
+const moment = require('moment')
+const { string } = require('joi')
 const router = express.Router()
+require('dotenv').config()
 
 router.use(express.json())
 
-router.post('/', async (req,res) => {
+router.post('/', async (req, res) => {
     let transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-            user: "peter.mourad.10@gmail.com",
-            pass: "test.grad.123"
+            user: process.env.GMAIL_ACCOUNT,
+            pass: process.env.GMAIL_PASSWORD
         },
         tls: {
             rejectUnauthorized: false
         }
-    })
+    });
 
+    // create code and store in dp
+    const code = Math.floor(100000 + Math.random() * 900000)
+    
+    var user_id = BigInt(0), name = "";
+    try {
+        var result = await pool.query(`SELECT u.id, u.first_name FROM public.users u 
+	                WHERE u.email = '${req.body.email}'`);
+        if (!result.rowCount) {
+            return res.status(401).send({ error: 'This email doesn\'t exist' });
+        }
+        user_id = result.rows[0].id, name = result.rows[0].first_name;
+    } catch (err) {
+        return res.status(401).send({ error: err.message });
+    }
+
+    var creation_time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
+    var expiration_time = moment(Date.now() + 60000).format('YYYY-MM-DD HH:mm:ss');
+    try {
+        pool.query(`INSERT INTO public.otp (id, code, created_at, expired_at) 
+            VALUES ('${user_id}', '${code}', '${creation_time}', '${expiration_time}')`);
+    } catch (err) {
+        return res.status(401).send({ error: err.message });
+    }
+
+    // mail html
+    const mail = ``;
+    
     const info = {
-        from: "peter.mourad.10@gmail.com",
+        from: process.env.GMAIL_ACCOUNT,
         to: req.body.email,
         subject: "reset password code",
-        text: 'hi peter this is your code',
+        text: `hi ${name} this is your recovery password code : ${code}`,
         html: mail
-    }
+    };
+
+    transporter.sendMail(info, (err, result) => {
+        if (err) return res.status(401).send({ error: err.message });
+        return res.send({ code: code });
+    });
+});
+
+
+
+router.post('/verify-code', async (req, res) => {
+    var time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
     
-    transporter.sendMail((info), (err, result) => {
-        if (err) return res.send({ error: err.message });
-        return res.send(result)
-    })
-})
-var code = ''
-const mail = `
-< !doctype html>
-    <html lang="en-US">
-        <head>
-            <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-            <title>your reset password code is : ${code}.</title>
-            <meta name="description" content="Reset Password Email Template.">
-                <style type="text/css">
-                    a:hover {text - decoration: underline !important;}
-                </style>
-        </head>
-
-        <body marginheight="0" topmargin="0" marginwidth="0" style="margin: 0px; background-color: #f2f3f8;" leftmargin="0">
-            <!--100% body table-->
-            <table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="#f2f3f8"
-                style="@import url(https://fonts.googleapis.com/css?family=Rubik:300,400,500,700|Open+Sans:300,400,600,700); font-family: 'Open Sans', sans-serif;">
-                <tr>
-                    <td>
-                        <table style="background-color: #f2f3f8; max-width:670px;  margin:0 auto;" width="100%" border="0"
-                            align="center" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td style="height:80px;">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:center;">
-                                    <a href="https://rakeshmandal.com" title="logo" target="_blank">
-                                        <img width="60" src="https://i.ibb.co/hL4XZp2/android-chrome-192x192.png" title="logo" alt="logo">
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="height:20px;">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table width="95%" border="0" align="center" cellpadding="0" cellspacing="0"
-                                        style="max-width:670px;background:#fff; border-radius:3px; text-align:center;-webkit-box-shadow:0 6px 18px 0 rgba(0,0,0,.06);-moz-box-shadow:0 6px 18px 0 rgba(0,0,0,.06);box-shadow:0 6px 18px 0 rgba(0,0,0,.06);">
-                                        <tr>
-                                            <td style="height:40px;">&nbsp;</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:0 35px;">
-                                                <h1 style="color:#1e1e2d; font-weight:500; margin:0;font-size:32px;font-family:'Rubik',sans-serif;">You have
-                                                    requested to reset your password</h1>
-                                                <span
-                                                    style="display:inline-block; vertical-align:middle; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;"></span>
-                                                <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
-                                                    We cannot simply send you your old password. A unique link to reset your
-                                                    password has been generated for you. To reset your password, click the
-                                                    following link and follow the instructions.
-                                                </p>
-                                                <a href="javascript:void(0);"
-                                                    style="background:#20e277;text-decoration:none !important; font-weight:500; margin-top:35px; color:#fff;text-transform:uppercase; font-size:14px;padding:10px 24px;display:inline-block;border-radius:50px;">Reset
-                                                    Password</a>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="height:40px;">&nbsp;</td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <tr>
-                                    <td style="height:20px;">&nbsp;</td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align:center;">
-                                        <p style="font-size:14px; color:rgba(69, 80, 86, 0.7411764705882353); line-height:18px; margin:0 0 0;">&copy; <strong>www.rakeshmandal.com</strong></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="height:80px;">&nbsp;</td>
-                                </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            <!--/100% body table-->
-        </body>
-
-    </html>`
+    pool.query(`SELECT o.code FROM public.otp o
+                WHERE 	o.code = '${req.body.code}'
+                    AND o.expired_at > timestamp '${time}'`,
+    (err, result) => {
+        if (err) return res.status(401).send({ error: err.message });
+        if (!result.rowCount) {
+            return res.status(401).send({ error: 'This code has expired' });
+        }
+        return res.send({ code: result.rows[0].code });
+    });  
+});
 
 module.exports = router
