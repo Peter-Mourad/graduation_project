@@ -13,14 +13,16 @@ const paulo_testing = require("./routes/pauloTesting");
 require("dotenv").config();
 
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use("/chats", chats);
 app.use("/register", register);
 app.use("/login", login);
 app.use("/refresh", refresh_token);
 app.use("/reset_password", reset_password);
 app.use("/paulo", paulo_testing);
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 app.listen(
   process.env.PORT,
