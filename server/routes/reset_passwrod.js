@@ -1,35 +1,36 @@
-const nodemailer = require('nodemailer')
-const express = require('express')
-const router = express.Router()
+const nodemailer = require("nodemailer");
+const express = require("express");
+const router = express.Router();
+require("dotenv").config();
 
-router.use(express.json())
+router.use(express.json());
 
-router.post('/', async (req,res) => {
-    let transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: "peter.mourad.10@gmail.com",
-            pass: "test.grad.123"
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    })
+router.post("/", async (req, res) => {
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_ACCOUNT,
+      pass: process.env.GMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 
-    const info = {
-        from: "peter.mourad.10@gmail.com",
-        to: req.body.email,
-        subject: "reset password code",
-        text: 'hi peter this is your code',
-        html: mail
-    }
-    
-    transporter.sendMail((info), (err, result) => {
-        if (err) return res.send({ error: err.message });
-        return res.send(result)
-    })
-})
-var code = ''
+  const info = {
+    from: "peter.mourad.10@gmail.com",
+    to: req.body.email,
+    subject: "reset password code",
+    text: "hi peter this is your code",
+    html: mail,
+  };
+
+  transporter.sendMail(info, (err, result) => {
+    if (err) return res.send({ error: err.message });
+    return res.send(result);
+  });
+});
+var code = "";
 const mail = `
 < !doctype html>
     <html lang="en-US">
@@ -109,6 +110,6 @@ const mail = `
             <!--/100% body table-->
         </body>
 
-    </html>`
+    </html>`;
 
-module.exports = router
+module.exports = router;
