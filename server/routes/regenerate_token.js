@@ -23,8 +23,7 @@ router.post('/', (req, res) => {
 })
 
     if ((decoded.exp * 1000 - Date.now()) / 1000 < 0) {
-      res.status(401);
-      return res.send({ error: "Expired token" });
+        return res.status(401).send({ error: "Expired token" });
     }
 
     const access_token = jwt.sign(
