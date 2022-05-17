@@ -3,7 +3,7 @@ const express = require("express");
 const auth = require("./middlewares/auth");
 const jwt = require("./middlewares/JWT");
 
-const chats = require('./routes/chats')
+const home = require('./routes/home')
 const register = require('./routes/register')
 const login = require('./routes/login')
 const refresh_token = require('./routes/regenerate_token')
@@ -17,7 +17,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use('/chats', chats)
+app.use('/home', home)
 app.use('/register', register)
 app.use('/login', login)
 app.use('/refresh', refresh_token)
