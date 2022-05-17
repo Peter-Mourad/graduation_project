@@ -148,7 +148,6 @@ router.post('/', async (req, res) => {
     });
 });
 
-
 router.post('/verify-code', async (req, res) => {
     var time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
     
@@ -160,7 +159,7 @@ router.post('/verify-code', async (req, res) => {
         if (!result.rowCount) {
             return res.status(401).send({ error: 'This code has expired' });
         }
-        return res.send({ code: result.rows[0].code });
+        return res.sendStatus(200);
     });  
 });
 
@@ -184,7 +183,7 @@ router.post('/update-password', async (req, res) => {
                     SET "password" = '${password}'
                     WHERE users.id = '${user_id}'`);
     }
-    res.status(200).send('succeeded');
+    res.sendstatus(200);
 });
 
 module.exports = router;
