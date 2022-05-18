@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer')
 const pool = require('../connection')
 const Joi = require('joi')
 const bcrypt = require('bcrypt')
+const { has } = require('config')
 const router = express.Router()
 
 require('dotenv').config()
@@ -144,7 +145,7 @@ router.post('/', async (req, res) => {
 
     transporter.sendMail(info, (err, result) => {
         if (err) return res.status(400).send({ error: err.message });
-        return res.send({ code: code });
+        return res.sendStatus(200);
     });
 });
 
@@ -152,20 +153,27 @@ router.post('/verify-code', async (req, res) => {
     var time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
     
     pool.query(`SELECT o.code FROM public.otp o
-                WHERE 	o.code = '${req.body.code}'
-                    AND o.expired_at > timestamp '${time}'`,
-    (err, result) => {
-        if (err) return res.status(400).send({ error: err.message });
-        if (!result.rowCount) {
-            return res.status(401).send({ error: 'This code has expired' });
+                INNER JOIN public.users u
+                    ON o.id = u.id
+                    WHERE 	o.code = '${req.body.code}'
+                        AND u.email = '${req.body.email}'
+                        AND o.expired_at > timestamp '${time}'`,
+        (err, result) => {
+            if (err) return res.status(400).send({ error: err.message });
+            if (!result.rowCount) {
+                return res.status(401).send({ error: 'This code has expired' });
+            }
+            return res.sendStatus(200);
         }
-        return res.sendStatus(200);
-    });  
+    );
 });
 
-router.post('/update-password', async (req, res) => {
-    var result = await pool.query(`SELECT o.id FROM public.otp o 
-	        WHERE o.code = '${req.body.code}'`);
+router.post('/update-password',  async (req, res) => {
+    var result = await pool.query(`SELECT o.id, u.email FROM public.otp o 
+                                    INNER JOIN public.users u 
+                                    ON o.id = u.id 
+                                    WHERE   o.code = '${req.body.code}'
+                                        AND u.email = '${req.body.email}'`);
     if (result.rowCount) {
         const user_id = result.rows[0].id;
         const schema = Joi.object({
@@ -177,14 +185,31 @@ router.post('/update-password', async (req, res) => {
         if (validateSchema.error) {
             return res.status(400).send({ error: 'The password isn\'t valid' });
         }
+        
+        const hash = await pool.query(`SELECT u.password
+                                        FROM public.users u
+                                        WHERE u.id= '${user_id}'`);
+        
+        var comp = bcrypt.compareSync(req.body.password, hash.rows[0].password);
+        if (comp) {
+            return res.status(400).send({ error: 'can\'t enter old password' });
+        }
 
-        const password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
+        const new_password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
         pool.query(`UPDATE public.users 
-                    SET "password" = '${password}'
+                    SET "password" = '${new_password}'
                     WHERE users.id = '${user_id}'`);
-        return res.sendStatus(200);
+        
+        pool.query(`DELETE FROM public.otp o
+	                WHERE o.code = '${req.body.code}';`,
+            (err, result) => {
+                if (err) return res.status(400).send({ error: err.message });
+                return res.sendStatus(200);
+            }
+        );
     }
-    else return res.status(400).send({ error: 'user not found' });
+    else
+        return res.status(400).send({ error: 'user not found' });
 });
 
 module.exports = router;
