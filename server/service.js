@@ -9,6 +9,7 @@ const login = require('./routes/login')
 const refresh_token = require('./routes/regenerate_token')
 const reset_password = require('./routes/reset_passwrod')
 const paulo_testing = require("./routes/pauloTesting")
+const chats = require('./routes/chats')
 
 require("dotenv").config();
 
@@ -23,6 +24,7 @@ app.use('/login', login)
 app.use('/refresh', refresh_token)
 app.use('/reset-password', reset_password)
 app.use("/paulo", paulo_testing)
+app.use('/chat', chats)
 
 app.listen(
   process.env.PORT,
