@@ -46,7 +46,7 @@ function convertFileFormat(file, destination, error, progressing, finish) {
 
 const Router = require("express").Router();
 Router.post("/upload-voice", upload.single("voice"), (req, res) => {
-  //   console.log("body", req.file);
+  // console.log("body", req.file);
   convertFileFormat(
     "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
       req.file.filename,
@@ -66,6 +66,11 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
   );
 
   res.json({ text: "this is your voice record you stupid shit bastered!" });
+});
+
+Router.post("/suggestion", (req, res) => {
+  let commingText = req.body.text;
+  res.json({ suggestion: "THIS IS A FKN SUGGESTION!" });
 });
 
 module.exports = Router;
