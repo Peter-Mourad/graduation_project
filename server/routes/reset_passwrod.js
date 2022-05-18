@@ -166,7 +166,7 @@ router.post('/verify-code', async (req, res) => {
 router.post('/update-password', async (req, res) => {
     var result = await pool.query(`SELECT o.id FROM public.otp o 
 	        WHERE o.code = '${req.body.code}'`);
-    if(result.rowCount){
+    if (result.rowCount) {
         const user_id = result.rows[0].id;
         const schema = Joi.object({
             password: Joi.string().pattern(new RegExp('^([A-Za-z\\d._]){8,30}$')).required()
@@ -182,8 +182,9 @@ router.post('/update-password', async (req, res) => {
         pool.query(`UPDATE public.users 
                     SET "password" = '${password}'
                     WHERE users.id = '${user_id}'`);
+        return res.sendStatus(200);
     }
-    res.sendstatus(200);
+    else return res.status(400).send({ error: 'user not found' });
 });
 
 module.exports = router;
