@@ -10,6 +10,6 @@ const VerifyToken = function (req, res, next) {
         req.user = decoded;
         next();
     });
-}
+};
 
 module.exports = VerifyToken
