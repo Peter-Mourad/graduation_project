@@ -5,7 +5,7 @@ const auth = require('../middlewares/auth')
 
 router.use(express.json());
 
-// create chat
+// load all chats
 router.get('/:id', auth, (req, res) => {
     pool.query(`SELECT c.chat_name, c.chat_id , m.message 
 				FROM public.chat c 
