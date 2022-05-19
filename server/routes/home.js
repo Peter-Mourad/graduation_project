@@ -9,7 +9,7 @@ router.use(express.json());
 
 // load all chats
 router.get('/', auth, (req, res) => {
-	pool.query(`SELECT c.chat_name, c.chat_id , m.message ,m.delivered_time, m.sender
+	pool.query(`SELECT c.chat_name, c.chat_id , c.chat_type, m.message ,m.delivered_time, m.sender
 				FROM public.chat c 
 				INNER JOIN public.users u 
 					ON u.id = c.user_id
