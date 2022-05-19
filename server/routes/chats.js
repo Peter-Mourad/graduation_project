@@ -25,6 +25,11 @@ router.post('/load', auth, (req, res) => {
                 ORDER BY m.delivered_time DESC `,
         (err, result) => {
             if (err) return res.status(400).send({ error: err.message });
+            for (var i = 0; i < result.rowCount; i++) {
+                if (result.rows[i].message != null) {
+                    result.rows[i].delivered_time = time_parse(result.rows[i].delivered_time);
+                }
+            }
             return res.send(result.rows);
         }
     );
@@ -41,5 +46,19 @@ router.post('/add-message', auth, (req, res) => {
         }
     );
 });
+
+const time_parse = (cur) => {
+    const temp_date = new Date(cur);
+    let date = temp_date.toString();
+    const new_date = date.split(/[ :]+/);
+    var hour = parseInt(new_date[4]);
+    var time = "AM";
+    if (hour >= 12) {
+        if (hour > 12)
+            hour -= 12;
+        time = "PM";
+    }
+    return `${hour}:${new_date[5]} ${time}`;
+}
 
 module.exports = router
