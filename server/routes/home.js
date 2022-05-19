@@ -13,7 +13,7 @@ router.get('/', auth, (req, res) => {
 				FROM public.chat c 
 				INNER JOIN public.users u 
 					ON u.id = c.user_id
-				INNER JOIN (SELECT DISTINCT ON (m.chat_id) m.chat_id , m.message, m.delivered_time
+				LEFT JOIN (SELECT DISTINCT ON (m.chat_id) m.chat_id , m.message, m.delivered_time
 							FROM public.message m 
 							ORDER BY m.chat_id ,m.delivered_time DESC) m 
 					ON c.chat_id = m.chat_id 
@@ -28,7 +28,7 @@ router.get('/', auth, (req, res) => {
 
 const time_parse = (cur) => {
 	const date = new Date(cur);
-	console.log(cur, cur.getDate(), cur.getMonth(), cur.getFullYear());
+	console.log(date, date.getDate(), date.getMonth(), date.getFullYear());
 	// var year = parseInt(cur.substring(0, 4));
 	// var month = parseInt(cur.substring(5, 7));
 	// var day = parseInt(cur.substring(8, 10));
