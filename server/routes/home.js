@@ -9,11 +9,11 @@ router.use(express.json());
 
 // load all chats
 router.get('/', auth, (req, res) => {
-	pool.query(`SELECT c.chat_name, c.chat_id , m.message ,m.delivered_time
+	pool.query(`SELECT c.chat_name, c.chat_id , m.message ,m.delivered_time, m.sender
 				FROM public.chat c 
 				INNER JOIN public.users u 
 					ON u.id = c.user_id
-				LEFT JOIN (SELECT DISTINCT ON (m.chat_id) m.chat_id , m.message, m.delivered_time
+				LEFT JOIN (SELECT DISTINCT ON (m.chat_id) m.chat_id , m.message, m.delivered_time, m.sender
 							FROM public.message m 
 							ORDER BY m.chat_id ,m.delivered_time DESC) m 
 					ON c.chat_id = m.chat_id 
