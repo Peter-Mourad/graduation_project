@@ -18,6 +18,7 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static("../server/images"));
 
 app.use('/home', home);
 app.use('/register', register);
