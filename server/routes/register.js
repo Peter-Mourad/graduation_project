@@ -20,8 +20,9 @@ router.post('/', async (req, res) => {
     }
     else {
         password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-        pool.query(`INSERT INTO public.users (username, "password", first_name, last_name, email, gender)
-	                VALUES ('${username}', '${password}', '${first_name}', '${last_name}', '${email}', '${gender}')`,
+        const profile_picture = `https://dummyimage.com/600x400/000/fff/&text=${first_name}`
+        pool.query(`INSERT INTO public.users (username, "password", first_name, last_name, email, gender, profile_picture)
+	                VALUES ('${username}', '${password}', '${first_name}', '${last_name}', '${email}', '${gender}', '${profile_picture}')`,
             (err, result) => {
                 if (err) {
                     return res.send({ error: err.message });
