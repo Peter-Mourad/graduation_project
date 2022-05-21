@@ -24,7 +24,7 @@ const upload = multer({
 });
 
 router.post('/upload-image', auth, upload.single("image"), (req, res) => {
-    image_link = `localhost:5000/${req.file.filename}`;
+    image_link = `http://localhost:5000/${req.file.filename}`;
     pool.query(`UPDATE public.users
                 SET profile_picture = '${image_link}'
                 WHERE id = '${req.user.id}'`,
