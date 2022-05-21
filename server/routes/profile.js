@@ -12,7 +12,7 @@ router.use(express.json());
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, `${process.env.IMAGES_PATH}`);
+        cb(null,'../server/images');
     },
     filename: (req, file, cb) => {
         cb(null, file.fieldname + "-" + Date.now() + ".png");
@@ -24,9 +24,9 @@ const upload = multer({
 });
 
 router.post('/upload-image', auth, upload.single("image"), (req, res) => {
-    const image_path = path.join(process.env.IMAGES_PATH, `/${req.file.filename}`);
+    image_link = `localhost:5000/${req.file.filename}`;
     pool.query(`UPDATE public.users
-                SET profile_picture = '${image_path}'
+                SET profile_picture = '${image_link}'
                 WHERE id = '${req.user.id}'`,
         (err, result) => {
             if (err) return res.status(400).send({ error: err.message });
