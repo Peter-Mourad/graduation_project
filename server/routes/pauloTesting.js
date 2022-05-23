@@ -4,6 +4,8 @@ const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
 const multer = require("multer");
 const path = require("path");
+const pool = require("../connection");
+const moment = require("moment");
 const fromFile = require("../configs/SpeachRecognition");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -46,8 +48,11 @@ function convertFileFormat(file, destination, error, progressing, finish) {
 
 const Router = require("express").Router();
 Router.post("/upload-voice", upload.single("voice"), (req, res) => {
-  const messageToBeReturned = "That's okay, it'll be ready in 30 min";
-
+  console.log(req.body);
+  const messageToBeReturned = "That is okay, it will be ready in 30 min";
+  var delivered_time = moment(Date.now()).format("YYYY-MM-DD HH:mm:ss");
+  pool.query(`INSERT INTO  public.message (message, delivered_time, chat_id, sender) 
+                VALUES ('${messageToBeReturned}', '${delivered_time}', '${req.body.chat_id}', 'false') `);
   // console.log("body", req.file);
   convertFileFormat(
     "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
