@@ -46,6 +46,8 @@ function convertFileFormat(file, destination, error, progressing, finish) {
 
 const Router = require("express").Router();
 Router.post("/upload-voice", upload.single("voice"), (req, res) => {
+  const messageToBeReturned = "That's okay, it'll be ready in 30 min";
+
   // console.log("body", req.file);
   convertFileFormat(
     "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
@@ -60,17 +62,20 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
         "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
           req.file.filename +
           ".wav"
+        // (text) => {
+        //   res.json({ text });
+        // }
       ); // make it syncabla
       // delete the records after use
+      // console.log(obj);
     }
   );
-
-  res.json({ text: "this is your voice record you stupid shit bastered!" });
+  res.json({ text: messageToBeReturned });
 });
 
 Router.post("/suggestion", (req, res) => {
   let commingText = req.body.text;
-  res.json({ suggestion: "THIS IS A FKN SUGGESTION!" });
+  res.json({ suggestion: "is a suggestion" });
 });
 
 module.exports = Router;
