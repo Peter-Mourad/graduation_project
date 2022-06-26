@@ -20,15 +20,16 @@ router.post('/', async (req, res) => {
     }
     else {
         password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-        const profile_picture = `https://dummyimage.com/600x400/000/fff/&text=${first_name}`
+        const profile_picture = `https://dummyimage.com/500x500/000/fff/&text=${first_name}`
         pool.query(`INSERT INTO public.users (username, "password", first_name, last_name, email, gender, profile_picture)
 	                VALUES ('${username}', '${password}', '${first_name}', '${last_name}', '${email}', '${gender}', '${profile_picture}')`,
             (err, result) => {
                 if (err) {
                     return res.send({ error: err.message });
                 }
-                return res.send(result.rows);
-            })
+                return res.sendStatus(200);
+            }
+        );
     }
 })
 
@@ -81,7 +82,7 @@ async function validateRegistraionData(req) {
     }
 
     // validate username uniqueness
-    var results = await pool.query(`select * from public.users u
+    var results = await pool.query(`select u.username from public.users u
                                     where u.username = '${req.username}'
                                     limit 1`);
     if (results.rowCount) {
@@ -90,7 +91,7 @@ async function validateRegistraionData(req) {
     }
 
     // validate email uniqueness
-    var results = await pool.query(`select * from public.users u
+    var results = await pool.query(`select u.email from public.users u
                                     where u.email = '${req.email}'
                                     limit 1`);
     if (results.rowCount) {
