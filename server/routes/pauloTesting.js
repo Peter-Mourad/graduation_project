@@ -7,6 +7,8 @@ const path = require("path");
 const pool = require("../connection");
 const moment = require("moment");
 const fromFile = require("../configs/SpeachRecognition");
+const quickstart = require("../routes/speachtotext");
+const fs = require("fs");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads");
@@ -32,13 +34,13 @@ function convertFileFormat(file, destination, error, progressing, finish) {
     })
     .on("progress", (progress) => {
       // console.log(JSON.stringify(progress));
-      console.log("Processing: " + progress.targetSize + " KB converted");
+      // console.log("Processing: " + progress.targetSize + " KB converted");
       if (progressing) {
         progressing(progress.targetSize);
       }
     })
     .on("end", () => {
-      console.log("converting format finished !");
+      // console.log("converting format finished !");
       if (finish) {
         finish();
       }
@@ -50,9 +52,8 @@ const Router = require("express").Router();
 Router.post("/upload-voice", upload.single("voice"), (req, res) => {
   console.log(req.body);
   const messageToBeReturned = "That is okay, it will be ready in 30 min";
-  var delivered_time = moment(Date.now()).format("YYYY-MM-DD HH:mm:ss");
-  pool.query(`INSERT INTO  public.message (message, delivered_time, chat_id, sender) 
-                VALUES ('${messageToBeReturned}', '${delivered_time}', '${req.body.chat_id}', 'false') `);
+  // pool.query(`INSERT INTO  public.message (message, delivered_time, chat_id, sender)
+  //               VALUES ('${messageToBeReturned}', '${delivered_time}', '${req.body.chat_id}', 'false') `);
   // console.log("body", req.file);
   convertFileFormat(
     "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
@@ -63,19 +64,27 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
     function (errorMessage) {},
     null,
     async function () {
-      const obj = fromFile(
+      const messageToBeReturned = quickstart(
+        res,
         "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
           req.file.filename +
-          ".wav"
-        // (text) => {
-        //   res.json({ text });
-        // }
-      ); // make it syncabla
+          ".wav",
+        req.body.chat_id
+      );
+      // const obj = fromFile(
+      //   "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
+      //     req.file.filename +
+      //     ".wav"
+      //   // (text) => {
+      //   //   res.json({ text });
+      //   // }
+      // ); // make it syncabla
       // delete the records after use
       // console.log(obj);
     }
   );
-  res.json({ text: messageToBeReturned });
+
+  // res.json({ text: messageToBeReturned });
 });
 
 Router.post("/suggestion", (req, res) => {

@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@google-cloud/speech": "^4.10.2",
     "bcrypt": "^5.0.1",
     "config": "^3.3.7",
     "cookie-session": "^2.0.0",
