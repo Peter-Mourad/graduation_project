@@ -1,65 +1,70 @@
-const express = require('express')
-const moment = require('moment')
-const nodemailer = require('nodemailer')
-const pool = require('../connection')
-const Joi = require('joi')
-const bcrypt = require('bcrypt')
-const { has } = require('config')
-const router = express.Router()
+const express = require("express");
+const moment = require("moment");
+const nodemailer = require("nodemailer");
+const pool = require("../connection");
+const Joi = require("joi");
+const bcrypt = require("bcrypt");
+const { has } = require("config");
+const router = express.Router();
 
-require('dotenv').config()
+require("dotenv").config();
 
 router.use(express.json());
 
-router.post('/', async (req, res) => {
-    let transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.GMAIL_ACCOUNT,
-            pass: process.env.GMAIL_PASSWORD
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
+router.post("/", async (req, res) => {
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_ACCOUNT,
+      pass: process.env.GMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 
-    // create code and store in dp
-    const code = Math.floor(100000 + Math.random() * 900000)
-    
-    var user_id = BigInt(0), name = "";
-    try {
-        var result = await pool.query(`SELECT u.id, u.first_name FROM public.users u 
+  // create code and store in dp
+  const code = Math.floor(100000 + Math.random() * 900000);
+
+  var user_id = BigInt(0),
+    name = "";
+  try {
+    var result =
+      await pool.query(`SELECT u.id, u.first_name FROM public.users u 
 	                WHERE u.email = '${req.body.email}'`);
-        if (!result.rowCount) {
-            return res.status(401).send({ error: 'This email doesn\'t exist' });
-        }
-        user_id = result.rows[0].id, name = result.rows[0].first_name;
-    } catch (err) {
-        return res.status(400).send({ error: err.message });
+    if (!result.rowCount) {
+      return res.status(401).send({ error: "This email doesn't exist" });
     }
+    (user_id = result.rows[0].id), (name = result.rows[0].first_name);
+  } catch (err) {
+    console.log("asdasd", err.message);
+    return res.status(400).send({ error: err.message });
+  }
 
-    var creation_time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
-    var expiration_time = moment(Date.now() + 3600000).format('YYYY-MM-DD HH:mm:ss');
-    try {
-        var result = await pool.query(`SELECT o.id FROM public.otp o 
-	                                    WHERE o.id = '${user_id}'`)
-        if(!result.rowCount){
-            pool.query(`INSERT INTO public.otp (id, code, created_at, expired_at) 
+  var creation_time = moment(Date.now()).format("YYYY-MM-DD HH:mm:ss");
+  var expiration_time = moment(Date.now() + 3600000).format(
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  try {
+    var result = await pool.query(`SELECT o.id FROM public.otp o 
+	                                    WHERE o.id = '${user_id}'`);
+    if (!result.rowCount) {
+      pool.query(`INSERT INTO public.otp (id, code, created_at, expired_at) 
                 VALUES ('${user_id}', '${code}', '${creation_time}', '${expiration_time}')`);
-        }
-        else {
-            pool.query(`UPDATE public.otp 
+    } else {
+      pool.query(`UPDATE public.otp 
                         SET code = '${code}',
                             created_at = '${creation_time}',
                             expired_at = '${expiration_time}'
                         WHERE otp.id = '${user_id}'`);
-        }
-    } catch (err) {
-        return res.status(400).send({ error: err.message });
     }
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).send({ error: err.message });
+  }
 
-    // mail html
-    const mail = `
+  // mail html
+  const mail = `
 <!doctype html>
 <html lang="en-US">
 
@@ -134,82 +139,90 @@ router.post('/', async (req, res) => {
 </body>
 
 </html>`;
-    
-    const info = {
-        from: process.env.GMAIL_ACCOUNT,
-        to: req.body.email,
-        subject: "reset password code",
-        text: `hi ${name} this is your recovery password code : ${code}`,
-        html: mail
-    };
 
-    transporter.sendMail(info, (err, result) => {
-        if (err) return res.status(400).send({ error: err.message });
-        return res.sendStatus(200);
-    });
+  const info = {
+    from: process.env.GMAIL_ACCOUNT,
+    to: req.body.email,
+    subject: "reset password code",
+    text: `hi ${name} this is your recovery password code : ${code}`,
+    html: mail,
+  };
+
+  transporter.sendMail(info, (err, result) => {
+    if (err) {
+      console.log("asd", err.message);
+      return res.status(400).send({ error: err.message });
+    }
+    return res.sendStatus(200);
+  });
 });
 
-router.post('/verify-code', async (req, res) => {
-    var time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
-    
-    pool.query(`SELECT o.code FROM public.otp o
+router.post("/verify-code", async (req, res) => {
+  var time = moment(Date.now()).format("YYYY-MM-DD HH:mm:ss");
+
+  pool.query(
+    `SELECT o.code FROM public.otp o
                 INNER JOIN public.users u
                     ON o.id = u.id
                     WHERE 	o.code = '${req.body.code}'
                         AND u.email = '${req.body.email}'
                         AND o.expired_at > timestamp '${time}'`,
-        (err, result) => {
-            if (err) return res.status(400).send({ error: err.message });
-            if (!result.rowCount) {
-                return res.status(401).send({ error: 'This code has expired' });
-            }
-            return res.sendStatus(200);
-        }
-    );
+    (err, result) => {
+      if (err) return res.status(400).send({ error: err.message });
+      if (!result.rowCount) {
+        return res.status(401).send({ error: "This code has expired" });
+      }
+      return res.sendStatus(200);
+    }
+  );
 });
 
-router.post('/update-password',  async (req, res) => {
-    var result = await pool.query(`SELECT o.id, u.email FROM public.otp o 
+router.post("/update-password", async (req, res) => {
+  var result = await pool.query(`SELECT o.id, u.email FROM public.otp o 
                                     INNER JOIN public.users u 
                                     ON o.id = u.id 
                                     WHERE   o.code = '${req.body.code}'
                                         AND u.email = '${req.body.email}'`);
-    if (result.rowCount) {
-        const user_id = result.rows[0].id;
-        const schema = Joi.object({
-            password: Joi.string().pattern(new RegExp('^([A-Za-z\\d._]){8,30}$')).required()
-        });
-        const validateSchema = schema.validate({
-            password: req.body.password
-        });
-        if (validateSchema.error) {
-            return res.status(400).send({ error: 'The password isn\'t valid' });
-        }
-        
-        const hash = await pool.query(`SELECT u.password
+  if (result.rowCount) {
+    const user_id = result.rows[0].id;
+    const schema = Joi.object({
+      password: Joi.string()
+        .pattern(new RegExp("^([A-Za-z\\d._]){8,30}$"))
+        .required(),
+    });
+    const validateSchema = schema.validate({
+      password: req.body.password,
+    });
+    if (validateSchema.error) {
+      return res.status(400).send({ error: "The password isn't valid" });
+    }
+
+    const hash = await pool.query(`SELECT u.password
                                         FROM public.users u
                                         WHERE u.id= '${user_id}'`);
-        
-        var comp = bcrypt.compareSync(req.body.password, hash.rows[0].password);
-        if (comp) {
-            return res.status(400).send({ error: 'can\'t enter old password' });
-        }
 
-        const new_password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
-        pool.query(`UPDATE public.users 
+    var comp = bcrypt.compareSync(req.body.password, hash.rows[0].password);
+    if (comp) {
+      return res.status(400).send({ error: "can't enter old password" });
+    }
+
+    const new_password = bcrypt.hashSync(
+      req.body.password,
+      bcrypt.genSaltSync(10)
+    );
+    pool.query(`UPDATE public.users 
                     SET "password" = '${new_password}'
                     WHERE users.id = '${user_id}'`);
-        
-        pool.query(`DELETE FROM public.otp o
+
+    pool.query(
+      `DELETE FROM public.otp o
 	                WHERE o.code = '${req.body.code}';`,
-            (err, result) => {
-                if (err) return res.status(400).send({ error: err.message });
-                return res.sendStatus(200);
-            }
-        );
-    }
-    else
-        return res.status(400).send({ error: 'user not found' });
+      (err, result) => {
+        if (err) return res.status(400).send({ error: err.message });
+        return res.sendStatus(200);
+      }
+    );
+  } else return res.status(400).send({ error: "user not found" });
 });
 
 module.exports = router;

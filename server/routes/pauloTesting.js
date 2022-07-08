@@ -50,8 +50,7 @@ function convertFileFormat(file, destination, error, progressing, finish) {
 
 const Router = require("express").Router();
 Router.post("/upload-voice", upload.single("voice"), (req, res) => {
-  console.log(req.body);
-  const messageToBeReturned = "That is okay, it will be ready in 30 min";
+  console.log("body!!!", req.body);
   // pool.query(`INSERT INTO  public.message (message, delivered_time, chat_id, sender)
   //               VALUES ('${messageToBeReturned}', '${delivered_time}', '${req.body.chat_id}', 'false') `);
   // console.log("body", req.file);
@@ -64,23 +63,13 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
     function (errorMessage) {},
     null,
     async function () {
-      const messageToBeReturned = quickstart(
+      quickstart(
         res,
         "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
           req.file.filename +
           ".wav",
         req.body.chat_id
       );
-      // const obj = fromFile(
-      //   "G:\\Development\\gradproj_backend\\graduation_project\\server\\uploads\\" +
-      //     req.file.filename +
-      //     ".wav"
-      //   // (text) => {
-      //   //   res.json({ text });
-      //   // }
-      // ); // make it syncabla
-      // delete the records after use
-      // console.log(obj);
     }
   );
 
@@ -89,7 +78,16 @@ Router.post("/upload-voice", upload.single("voice"), (req, res) => {
 
 Router.post("/suggestion", (req, res) => {
   let commingText = req.body.text;
-  res.json({ suggestion: "is a suggestion" });
+  commingText = commingText.toLowerCase();
+  let suggestion = "";
+  if (commingText.includes("can i"))
+    suggestion = "order a beef burger, please!";
+  else if (commingText.includes("i want")) suggestion = "to make an order";
+  else if (commingText.includes("my favourite"))
+    suggestion =
+      "toppings is tomatoes and onion rings, with fried potatoes as a side dish";
+  else if (commingText.includes("okay")) suggestion = ", thank you so much";
+  res.json({ suggestion });
 });
 
 module.exports = Router;
